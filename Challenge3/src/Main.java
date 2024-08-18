@@ -2,42 +2,87 @@ import java.util.*;
 
 public class Main {
 
+    static List<Coordinate> housesSanta = new ArrayList<>();
+    static List<Coordinate> housesRobo = new ArrayList<>();
+    static int xSanta = 0;
+    static int ySanta = 0;
+    static int xRobo = 0;
+    static int yRobo = 0;
+
     public static void main(String[] args) {
         Scanner fileContents = FileReader.getFileContents("Challenge3\\input\\input.txt");
         assert fileContents != null;
-        int houses = 0;
-        int x = 0;
-        int y = 0;
-        List<Coordinate> delivered = new ArrayList<>();
-        delivered.add(new Coordinate(x, y));
-        houses++;
+
+        List<Coordinate> deliveredSanta = new ArrayList<>();
+        List<Coordinate> deliveredRobo = new ArrayList<>();
+        Coordinate startSanta = new Coordinate(xSanta, ySanta);
+        Coordinate startRobo = new Coordinate(xSanta, ySanta);
+        deliveredSanta.add(startSanta);
+        deliveredRobo.add(startRobo);
+        housesSanta.add(startSanta);
+        housesRobo.add(startRobo);
 
         while (fileContents.hasNext()) {
             String directions = fileContents.nextLine();
-            for (char direction : directions.toCharArray()) {
-                switch (direction) {
-                    case '^':
-                        y++;
-                        break;
-                    case 'v':
-                        y--;
-                        break;
-                    case '<':
-                        x--;
-                        break;
-                    case '>':
-                        x++;
-                        break;
+
+            for (int i = 0; i < directions.length(); i++) {
+                char character = directions.charAt(i);
+//                System.out.println("Evaluating direction '" + character + "' at position " + i);
+                if (i % 2 == 0) {
+                    countHouses(character, deliveredSanta, true);
+                } else {
+                    countHouses(character, deliveredRobo, false);
                 }
-                Coordinate current = new Coordinate(x, y);
-                if (!delivered.contains(current)) {
-                    houses++;
-                }
-                delivered.add(current);
             }
         }
 
-        System.out.println("Houses: " + houses);
+        housesSanta.addAll(housesRobo);
+//        System.out.println("Summed " + housesSanta);
+        List<Coordinate> finalHouses = housesSanta.stream().distinct().toList();
+//        System.out.println("Unique " + finalHouses);
+        System.out.println("Houses: " + finalHouses.size());
+    }
+
+    private static void countHouses(char direction, List<Coordinate> delivered, boolean isSanta) {
+        switch (direction) {
+            case '^':
+                if (isSanta) {
+                    ySanta++;
+                } else {
+                    yRobo++;
+                }
+                break;
+            case 'v':
+                if (isSanta) {
+                    ySanta--;
+                } else {
+                    yRobo--;
+                }
+                break;
+            case '<':
+                if (isSanta) {
+                    xSanta--;
+                } else {
+                    xRobo--;
+                }
+                break;
+            case '>':
+                if (isSanta) {
+                    xSanta++;
+                } else {
+                    xRobo++;
+                }
+                break;
+        }
+        Coordinate current = isSanta ? new Coordinate(xSanta, ySanta) : new Coordinate(xRobo, yRobo);
+        if (!delivered.contains(current)) {
+            if (isSanta) {
+                housesSanta.add(current);
+            } else {
+                housesRobo.add(current);
+            }
+        }
+        delivered.add(current);
     }
 
     private static class Coordinate {
@@ -54,6 +99,16 @@ public class Main {
         public boolean equals(Object obj) {
             Coordinate other = ((Coordinate) obj);
             return x == other.x && y == other.y;
+        }
+
+        @Override
+        public String toString() {
+            return "(" + x + ", " + y + ")";
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(x, y);
         }
     }
 
